@@ -1,5 +1,8 @@
 package com.javatechie.aws.cicd.example;
 
+import inet.ipaddr.AddressStringException;
+import inet.ipaddr.IPAddress;
+import inet.ipaddr.IPAddressString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,6 +42,11 @@ public class OrderServiceApplication {
         return new CidirAndMaskResponse("mask-to-cidr", value, convertNetmaskToCIDR(netmask));
     }
 
+    @PostMapping("/cidr-to-mask")
+    public CidirAndMaskResponse convertCidrToMas(@RequestParam String value) throws AddressStringException {
+        return new CidirAndMaskResponse("cidr-to-mask", value, convertCidrTMask(value));
+    }
+
     private static String convertNetmaskToCIDR(InetAddress netmask){
         byte[] netmaskBytes = netmask.getAddress();
         int cidr = 0;
@@ -58,6 +66,14 @@ public class OrderServiceApplication {
             }
         }
         return Integer.toString(cidr);
+    }
+
+    private static String convertCidrTMask(String cidr) throws AddressStringException {
+        IPAddressString addressString = new IPAddressString("1/"+ cidr);
+        IPAddress address = addressString.toAddress();
+        Integer prefix = address.getNetworkPrefixLength();
+        IPAddress mask = address.getNetwork().getNetworkMask(prefix, false);
+        return mask.toString();
     }
 
     public static void main(String[] args) {
